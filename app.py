@@ -8,7 +8,7 @@ from PIL import Image
 from datetime import datetime
 
 # Load trained model
-model = YOLO("dataset/runs/classify/train/weights/best.pt")
+model = YOLO("best.pt")
 
 st.set_page_config(
     page_title="AI Smart Waste System",
@@ -162,4 +162,5 @@ st.markdown("""
     <b>AI Smart Waste Segregation System</b><br>
     Built for Smart City Innovation Hackathon 2026 🚀
     </center>
+
 """, unsafe_allow_html=True)
