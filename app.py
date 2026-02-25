@@ -23,23 +23,19 @@ st.markdown("""
         background-color: #0E1117;
         color: white;
     }
-
     h1, h2, h3, h4 {
         color: #00FFAA;
         text-align: center;
     }
-
     label {
         color: white !important;
     }
-
     .stButton>button {
         background-color: #00FFAA;
         color: black;
         border-radius: 8px;
         font-weight: bold;
     }
-
     .stButton>button:hover {
         background-color: #00cc88;
         color: white;
@@ -56,7 +52,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.success("🌍 Promoting Sustainable Smart Cities Through AI")
-
 st.divider()
 
 # 📍 Location Section
@@ -65,7 +60,6 @@ location = st.text_input("Enter Disposal Location")
 
 # 📷 Image Section
 st.subheader("📷 Capture or Upload Waste Image")
-
 uploaded_file = st.file_uploader("Upload an image...", type=["jpg", "png", "jpeg"])
 camera_photo = st.camera_input("Or Take a Photo")
 
@@ -99,16 +93,47 @@ if image_file is not None and location.strip() != "":
         st.success(f"### 🗑 Waste Type: {predicted_class}")
         st.info(f"Confidence: {confidence:.2f}%")
 
-        st.write("🚀 Activating Smart Bin...")
-        time.sleep(2)
-        st.success("Bin Opened ✅")
-        time.sleep(6)
-        st.info("Bin Closed")
+        # 🔎 Mixed Waste Logic (Low Confidence Based)
+        if confidence < 60:
+            final_result = "Mixed Waste"
+        else:
+            final_result = predicted_class
+
+        st.subheader("🗑 Smart Bin Status")
+
+        # 🚨 Mixed Waste Condition
+        if final_result == "Mixed Waste":
+            st.error("⚠️ Mixed Waste Detected.")
+            st.warning("Please separate the waste properly and scan again to open the correct bin.")
+
+        # 🟢 Organic
+        elif final_result.lower() == "organic":
+            st.success("🟢 Organic Bin OPEN")
+            st.write("🔵 Recyclable Bin CLOSED")
+            st.write("🟡 Dry Bin CLOSED")
+            time.sleep(6)
+            st.info("Organic Bin Closed")
+
+        # 🟡 Dry
+        elif final_result.lower() == "dry":
+            st.success("🟡 Dry Bin OPEN")
+            st.write("🟢 Organic Bin CLOSED")
+            st.write("🔵 Recyclable Bin CLOSED")
+            time.sleep(6)
+            st.info("Dry Bin Closed")
+
+        # 🔵 Recyclable
+        elif final_result.lower() == "recyclable":
+            st.success("🔵 Recyclable Bin OPEN")
+            st.write("🟢 Organic Bin CLOSED")
+            st.write("🟡 Dry Bin CLOSED")
+            time.sleep(6)
+            st.info("Recyclable Bin Closed")
+
         st.balloons()
 
     # 💾 Save History
     file_exists = os.path.isfile("history.csv")
-
     with open("history.csv", mode="a", newline="") as file:
         writer = csv.writer(file)
         if not file_exists:
@@ -116,7 +141,7 @@ if image_file is not None and location.strip() != "":
         writer.writerow([
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             location,
-            predicted_class,
+            final_result,
             f"{confidence:.2f}%"
         ])
 
@@ -131,22 +156,18 @@ if st.checkbox("Show History"):
     if os.path.exists("history.csv"):
         df = pd.read_csv("history.csv")
 
-        # 📊 Metrics
         col1, col2, col3 = st.columns(3)
         col1.metric("Total Entries", len(df))
         col2.metric("Unique Locations", df["Location"].nunique())
         col3.metric("Waste Categories", df["Waste Type"].nunique())
 
-        # 📊 Waste Summary Chart
         st.subheader("📊 Waste Summary")
         waste_count = df["Waste Type"].value_counts()
         st.bar_chart(waste_count)
 
-        # 📋 Detailed Records
         st.subheader("📋 Detailed Records")
         st.dataframe(df, use_container_width=True)
 
-        # 🗑 Clear History
         if st.button("🗑 Clear History"):
             os.remove("history.csv")
             st.success("History Cleared Successfully!")
@@ -162,5 +183,4 @@ st.markdown("""
     <b>AI Smart Waste Segregation System</b><br>
     Built for Smart City Innovation Hackathon 2026 🚀
     </center>
-
 """, unsafe_allow_html=True)
